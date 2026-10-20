@@ -11,7 +11,7 @@ ENGLISH_WORDS = [
 
 def generate_random_filename():
     length = random.randint(6, 8)
-    name = "".join(random.choices(ENGLISH_WORDS, k=length))
+    name = "".join(random.choices(string.ascii_lowercase, k=length))
     return f"{name}.txt"
 
 def generate_random_file_content():
