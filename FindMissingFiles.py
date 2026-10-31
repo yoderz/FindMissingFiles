@@ -1,6 +1,33 @@
 import os
 import csv
 import sys
+import shutil
+
+
+def copy_missing_files(thumbdrive_path, updated_path, missing_entries):
+    """Copy each missing file from the original folder into the updated folder,
+    preserving its relative folder path and creating folders as needed."""
+    copied = 0
+    failed = []
+
+    for folder, file_name in missing_entries:
+        src_dir = thumbdrive_path if folder == "." else os.path.join(thumbdrive_path, folder)
+        dst_dir = updated_path if folder == "." else os.path.join(updated_path, folder)
+        src_file = os.path.join(src_dir, file_name)
+        dst_file = os.path.join(dst_dir, file_name)
+
+        try:
+            os.makedirs(dst_dir, exist_ok=True)
+            shutil.copy2(src_file, dst_file)  # copy2 keeps timestamps
+            copied += 1
+        except Exception as e:
+            failed.append((src_file, str(e)))
+
+    print(f"\nCopied {copied} of {len(missing_entries)} missing files.")
+    if failed:
+        print(f"{len(failed)} file(s) could not be copied:")
+        for path, err in failed:
+            print(f"  {path}: {err}")
 
 
 def compare_folders(
@@ -84,15 +111,25 @@ def compare_folders(
                 ])
         print(f"[+] Saved summary to {summary_csv}", file=sys.stderr)
 
+    # Offer to copy the missing files across
+    if not missing_entries:
+        print("\nNo missing files. Nothing to copy.")
+        return
+
+    answer = input(
+        f"\n{len(missing_entries)} file(s) are missing from the updated folder. "
+        "Copy them across now? (yes/no): "
+    ).strip().lower()
+
+    if answer in ("y", "yes"):
+        copy_missing_files(thumbdrive_path, updated_path, missing_entries)
+    else:
+        print("No files copied.")
+
 
 if __name__ == "__main__":
     # Replace these paths with your actual folder paths
     THUMBDRIVE_DIR = "thumbdrive_original"
     UPDATED_DIR = "thumbdrive_updated"
-    OUTPUT_CSV = "missing_files.csv"
-    SUMMARY_CSV = "missing_summary.csv"
 
-    print(f"Comparing folders: {THUMBDRIVE_DIR} and {UPDATED_DIR}")
-    compare_folders(THUMBDRIVE_DIR, UPDATED_DIR, OUTPUT_CSV, SUMMARY_CSV)
-    print(f"Saved results to {OUTPUT_CSV}")
-    print(f"Saved summary to {SUMMARY_CSV}")
+    compare_folders(THUMBDRIVE_DIR, UPDATED_DIR)
