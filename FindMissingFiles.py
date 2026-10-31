@@ -6,6 +6,15 @@ def compare_folders(thumbdrive_path, updated_path, output_csv="missing_files.csv
     thumbdrive_path = os.path.abspath(thumbdrive_path)
     updated_path = os.path.abspath(updated_path)
 
+    if not os.path.exists(thumbdrive_path):
+        print(f"Thumbdrive path does not exist: {thumbdrive_path}")
+        return
+    if not os.path.exists(updated_path):
+        print(f"Updated path does not exist: {updated_path}")
+        return
+    print(f"Thumbdrive path exists: {thumbdrive_path}")
+    print(f"Updated path exists: {updated_path}")
+
     missing_entries = []
 
     # Walk through all directories and files on the thumbdrive
@@ -22,7 +31,10 @@ def compare_folders(thumbdrive_path, updated_path, output_csv="missing_files.csv
             # Check if file exists in the updated folder structure
             if not os.path.exists(target_file_path):
                 folder_display = "." if rel_folder == "." else rel_folder
+                print(f"Missing file: {target_file_path}")
                 missing_entries.append((folder_display, file_name))
+            else:
+                print(f"File exists: {target_file_path}")
 
     # Print CSV output to standard output
     writer = csv.writer(sys.stdout)
@@ -41,7 +53,7 @@ def compare_folders(thumbdrive_path, updated_path, output_csv="missing_files.csv
 
 if __name__ == "__main__":
     # Replace these paths with your actual folder paths
-    THUMBDRIVE_DIR = "/path/to/thumbdrive"
-    UPDATED_DIR = "/path/to/updated_folder"
+    THUMBDRIVE_DIR = "thumbdrive_original"
+    UPDATED_DIR = "thumbdrive_updated"
 
     compare_folders(THUMBDRIVE_DIR, UPDATED_DIR)
